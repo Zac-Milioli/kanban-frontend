@@ -11,7 +11,7 @@
         </div>
         <div class="cards-container">
           <div v-for="client in clients" :key="client.id" class="card" @click="selectClient(client)">
-            <h3>{{ client.nome }}</h3>
+            <h3>{{ client.name }}</h3>
             <button @click.stop="editClient(client)">Editar</button>
             <button @click.stop="deleteClient(client.id)">Excluir</button>
           </div>
@@ -19,26 +19,32 @@
       </div>
       <div class="column bordered">
         <div class="section-header">
-          <h2>{{ selectedClient ? `Atividades de ${selectedClient.nome}` : 'Todas as atividades do projeto' }}</h2>
-          <button v-if="selectedClient" @click="showCreateActivityForm">Adicionar Atividade</button>
-        </div>
-        <div class="cards-container">
-          <div v-for="activity in filteredActivities" :key="activity.id" class="card">
-            <h3>{{ activity.nome }}</h3>
-            <p>Cliente: {{ getClientName(activity.cliente_id) }}</p>
-            <button @click="editActivity(activity)">Editar</button>
-            <button @click="deleteActivity(activity.id)">Excluir</button>
+          <h2>{{ selectedClient ? `Atividades de ${selectedClient.name}` : 'Todas as atividades do projeto' }}</h2>
+          <div>
+            <button v-if="selectedClient" @click="showCreateActivityForm">Adicionar Atividade</button>
+            <button v-if="selectedClient" @click="deselectClient">Voltar</button>
           </div>
         </div>
+        <div v-for="status in activityStatuses" :key="status" class="status-section">
+          <h2>{{ status }}</h2>
+          <div class="cards-container">
+            <div v-for="activity in filteredActivities" :key="activity.id" class="card">
+              <h3>{{ activity.name }}</h3>
+              <p v-if="selectedClient===null">Cliente: {{ getClientName(activity.client_id) }}</p>
+              <button @click="editActivity(activity)">Editar</button>
+              <button @click="deleteActivity(activity.id)">Excluir</button>
+            </div>
+        </div>
       </div>
+    </div>
     </div>
 
     <!-- Formulário de Cliente -->
     <div v-if="showClientForm" class="form-container">
       <h2>{{ isEditingClient ? 'Editar Cliente' : 'Criar Novo Cliente' }}</h2>
       <form @submit.prevent="submitClientForm">
-        <label for="nome">Nome:</label>
-        <input type="text" v-model="clientForm.nome" required />
+        <label for="name">Nome:</label>
+        <input type="text" v-model="clientForm.name" required />
 
         <div class="form-buttons">
           <button type="submit">{{ isEditingClient ? 'Salvar' : 'Criar' }}</button>
@@ -51,8 +57,14 @@
     <div v-if="showActivityForm" class="form-container">
       <h2>{{ isEditingActivity ? 'Editar Atividade' : 'Criar Nova Atividade' }}</h2>
       <form @submit.prevent="submitActivityForm">
-        <label for="nome">Nome:</label>
-        <input type="text" v-model="activityForm.nome" required />
+        <label for="name">Nome:</label>
+        <input type="text" v-model="activityForm.name" required />
+        <label for="description">Descrição:</label>
+        <input type="text" v-model="activityForm.description" />
+        <label for="status">Status:</label>
+        <select v-model="activityForm.status" required>
+          <option v-for="status in activityStatuses" :key="status" :value="status">{{ status }}</option>
+        </select>
 
         <div class="form-buttons">
           <button type="submit">{{ isEditingActivity ? 'Salvar' : 'Criar' }}</button>
@@ -75,10 +87,11 @@ export default {
       selectedClient: null,
       showClientForm: false,
       isEditingClient: false,
-      clientForm: { id: null, nome: '' },
+      clientForm: { id: null, name: '', project_id: null },
       showActivityForm: false,
       isEditingActivity: false,
-      activityForm: { id: null, nome: '' }
+      activityForm: { id: null, name: '', description: '', status: '', client_id: null },
+      activityStatuses: ['Em andamento', 'Concluído', 'Cancelado']
     };
   },
   computed: {
@@ -86,7 +99,7 @@ export default {
       if (!this.selectedClient) {
         return this.activities;
       }
-      return this.activities.filter(activity => activity.cliente_id === this.selectedClient.id);
+      return this.activities.filter(activity => activity.client_id === this.selectedClient.id);
     }
   },
   methods: {
@@ -94,30 +107,34 @@ export default {
       const projectId = this.$route.params.id;
       try {
         const [clientsResponse, activitiesResponse] = await Promise.all([
-          axios.get(`http://127.0.0.1:5000/projeto/${projectId}/cliente`),
-          axios.get(`http://127.0.0.1:5000/projeto/${projectId}/atividade`)
+          axios.get(`http://localhost:8000/client?project_id=${projectId}`),
+          axios.get(`http://localhost:8000/activity?project_id=${projectId}`)
         ]);
         this.clients = clientsResponse.data;
         this.activities = activitiesResponse.data;
       } catch (error) {
-        console.error('Erro ao buscar dados:', error);
+        alert('Erro ao buscar dados');
       }
     },
     async fetchClientActivities(clientId) {
       try {
-        const response = await axios.get(`http://127.0.0.1:5000/cliente/${clientId}/atividade`);
+        const response = await axios.get(`http://localhost:8000/activity?client_id=${clientId}`);
         this.activities = response.data;
       } catch (error) {
-        console.error('Erro ao buscar atividades do cliente:', error);
+        alert('Erro ao buscar atividades do cliente');
       }
     },
     getClientName(clientId) {
       const client = this.clients.find(client => client.id === clientId);
-      return client ? client.nome : 'Desconhecido';
+      return client ? client.name : 'Desconhecido';
     },
     async selectClient(client) {
       this.selectedClient = client;
       await this.fetchClientActivities(client.id);
+    },
+    deselectClient() {
+      this.selectedClient = null;
+      this.fetchData();
     },
     showCreateClientForm() {
       this.resetClientForm();
@@ -127,11 +144,11 @@ export default {
     async createClient() {
       const projectId = this.$route.params.id;
       try {
-        await axios.post(`http://127.0.0.1:5000/api/cliente`, { ...this.clientForm, projeto_id: projectId });
+        await axios.post(`http://localhost:8000/client`, { ...this.clientForm, project_id: projectId });
         this.fetchData(); // Atualiza os dados após a criação
         this.showClientForm = false;
       } catch (error) {
-        console.error('Erro ao criar cliente:', error);
+        alert('Erro ao criar cliente');
       }
     },
     editClient(client) {
@@ -141,19 +158,19 @@ export default {
     },
     async updateClient() {
       try {
-        await axios.put(`http://127.0.0.1:5000/api/cliente/${this.clientForm.id}`, this.clientForm);
+        await axios.put(`http://localhost:8000/client/${this.clientForm.id}`, this.clientForm);
         this.fetchData(); // Atualiza os dados após a atualização
         this.showClientForm = false;
       } catch (error) {
-        console.error('Erro ao atualizar cliente:', error);
+        alert('Erro ao atualizar cliente');
       }
     },
     async deleteClient(id) {
       try {
-        await axios.delete(`http://127.0.0.1:5000/api/cliente/${id}`);
+        await axios.delete(`http://localhost:8000/client/${id}`);
         this.fetchData(); // Atualiza os dados após a exclusão
       } catch (error) {
-        console.error('Erro ao excluir cliente:', error);
+        alert('Erro ao excluir cliente');
       }
     },
     submitClientForm() {
@@ -165,10 +182,10 @@ export default {
     },
     cancelClientForm() {
       this.showClientForm = false;
-      this.clientForm = { id: null, nome: '' };
+      this.clientForm = { id: null, name: '', project_id: null };
     },
     resetClientForm() {
-      this.clientForm = { id: null, nome: '' };
+      this.clientForm = { id: null, name: '', project_id: null };
     },
     showCreateActivityForm() {
       this.resetActivityForm();
@@ -176,13 +193,12 @@ export default {
       this.isEditingActivity = false;
     },
     async createActivity() {
-      const projectId = this.$route.params.id;
       try {
-        await axios.post(`http://127.0.0.1:5000/api/atividade`, { ...this.activityForm, projeto_id: projectId, cliente_id: this.selectedClient.id });
+        await axios.post(`http://localhost:8000/activity`, { ...this.activityForm, client_id: this.selectedClient.id });
         this.fetchClientActivities(this.selectedClient.id); // Atualiza as atividades após a criação
         this.showActivityForm = false;
       } catch (error) {
-        console.error('Erro ao criar atividade:', error);
+        alert('Erro ao criar atividade');
       }
     },
     editActivity(activity) {
@@ -192,19 +208,19 @@ export default {
     },
     async updateActivity() {
       try {
-        await axios.put(`http://127.0.0.1:5000/api/atividade/${this.activityForm.id}`, this.activityForm);
+        await axios.put(`http://localhost:8000/activity/${this.activityForm.id}`, this.activityForm);
         this.fetchClientActivities(this.selectedClient.id); // Atualiza as atividades após a atualização
         this.showActivityForm = false;
       } catch (error) {
-        console.error('Erro ao atualizar atividade:', error);
+        alert('Erro ao atualizar atividade');
       }
     },
     async deleteActivity(id) {
       try {
-        await axios.delete(`http://127.0.0.1:5000/api/atividade/${id}`);
+        await axios.delete(`http://localhost:8000/activity/${id}`);
         this.fetchClientActivities(this.selectedClient.id); // Atualiza as atividades após a exclusão
       } catch (error) {
-        console.error('Erro ao excluir atividade:', error);
+        alert('Erro ao excluir atividade');
       }
     },
     submitActivityForm() {
@@ -216,10 +232,10 @@ export default {
     },
     cancelActivityForm() {
       this.showActivityForm = false;
-      this.activityForm = { id: null, nome: '' };
+      this.activityForm = { id: null, name: '', description: '', status: '', client_id: null };
     },
     resetActivityForm() {
-      this.activityForm = { id: null, nome: '' };
+      this.activityForm = { id: null, name: '', description: '', status: '', client_id: null };
     }
   },
   mounted() {
@@ -233,6 +249,11 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+}
+
+.status-section {
+  display: flex;
+  flex-direction: column;
 }
 
 .page-container {
@@ -263,6 +284,7 @@ html, body {
   padding: 10px;
   display: flex;
   flex-direction: column;
+  width: 50%;
 }
 
 .bordered {
@@ -275,7 +297,15 @@ html, body {
 .section-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+}
+
+.section-header h2 {
+  max-width: 250px;
+  word-wrap: break-word;
+}
+
+.section-header button {
+  margin: 10px;
 }
 
 .cards-container {
@@ -292,21 +322,25 @@ html, body {
   width: calc(33.333% - 20px); /* Três cards por linha com espaçamento */
   box-sizing: border-box;
   cursor: pointer;
+  position: relative;
 }
 
 .card h3 {
   margin-top: 0;
+  text-align: center;
+  max-width: 80%;
+  word-wrap: break-word;
 }
 
 .card button {
   background-color: #0078d4; /* Azul da Microsoft */
   color: white;
   border: none;
-  padding: 10px; /* Reduzido o tamanho dos botões */
+  padding: 10px;
   font-size: 1em;
   cursor: pointer;
-  border-radius: 0; /* Tornar os botões quadrados */
-  margin: 10px; /* Aumentar as margens dos botões */
+  border-radius: 2px;
+  margin: 5px; /* Aumentar a margem entre os botões e o texto */
 }
 
 .card button:hover {
@@ -319,11 +353,11 @@ html, body {
   border-radius: 4px;
   padding: 20px;
   width: 300px;
-  position: absolute; /* Posicionamento absoluto */
-  top: 50px; /* Distância do topo */
-  left: 50%; /* Centraliza horizontalmente */
-  transform: translateX(-50%); /* Ajusta a posição para centralizar */
-  z-index: 10; /* Garante que o formulário fique sobre outros elementos */
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
 }
 
 .form-container form {
@@ -335,8 +369,9 @@ html, body {
   margin-bottom: 5px;
 }
 
-.form-container input {
-  margin-bottom: 10px;
+.form-container input,
+.form-container select {
+  margin-bottom: 20px; /* Aumentar a margem entre os inputs e selects */
   padding: 5px;
   border: 1px solid #e1dfdd;
   border-radius: 4px;
@@ -353,11 +388,11 @@ html, body {
   border: none;
   padding: 10px;
   cursor: pointer;
-  margin-right: 10px; /* Margem entre os botões */
+  margin-right: 20px; /* Aumentar a margem entre os botões */
 }
 
 .form-buttons button:last-child {
-  margin-right: 0; /* Remove a margem do último botão */
+  margin-right: 0;
 }
 
 .form-buttons button:hover {

@@ -5,6 +5,6 @@ import axios from './plugins/axios';
 
 const app = createApp(App);
 
-app.config.globalProperties.$axios = axios; // Adiciona o Axios como uma propriedade global
+app.config.globalProperties.$axios = axios;
 
 app.use(router).mount('#app');

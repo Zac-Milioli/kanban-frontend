@@ -13,8 +13,7 @@
         <div class="cards-container">
           <div v-for="project in filteredProjects(status)" :key="project.id" class="project-card">
             <div @click="goToClientsActivities(project)" class="card-content">
-              <h3>{{ project.nome }}</h3>
-              <p>Status: {{ project.status }}</p>
+              <h2>{{ project.name }}</h2>
             </div>
             <div class="card-actions">
               <button @click="editProject(project)">Editar</button>
@@ -28,8 +27,8 @@
     <div v-if="showForm" class="form-container">
       <h2>{{ isEditing ? 'Editar Projeto' : 'Criar Novo Projeto' }}</h2>
       <form @submit.prevent="isEditing ? updateProject() : createProject()">
-        <label for="nome">Nome:</label>
-        <input type="text" v-model="form.nome" required />
+        <label for="name">name:</label>
+        <input type="text" v-model="form.name" required />
 
         <label for="status">Status:</label>
         <select v-model="form.status" required>
@@ -52,13 +51,13 @@ export default {
   name: 'ProjectsComponent',
   data() {
     return {
-      projects: [], // Lista de projetos inicializada vazia
+      projects: [],
       projectStatuses: ['Em andamento', 'Concluído', 'Cancelado'],
       showForm: false,
       isEditing: false,
       form: {
         id: null,
-        nome: '',
+        name: '',
         status: ''
       }
     };
@@ -77,14 +76,14 @@ export default {
     },
     async createProject() {
       try {
-        await axios.post('http://127.0.0.1:5000/api/projeto', {
-          nome: this.form.nome,
+        await axios.post('http://localhost:8000/project', {
+          name: this.form.name,
           status: this.form.status
         });
-        this.fetchProjects(); // Atualiza a lista de projetos após a criação
+        this.fetchProjects();
         this.showForm = false;
       } catch (error) {
-        console.error('Erro ao criar projeto:', error);
+        alert('Erro ao criar projeto');
       }
     },
     editProject(project) {
@@ -94,22 +93,22 @@ export default {
     },
     async updateProject() {
       try {
-        await axios.put(`http://127.0.0.1:5000/api/projeto/${this.form.id}`, {
-          nome: this.form.nome,
+        await axios.put(`http://localhost:8000/project/${this.form.id}`, {
+          name: this.form.name,
           status: this.form.status
         });
-        this.fetchProjects(); // Atualiza a lista de projetos após a atualização
+        this.fetchProjects(); 
         this.showForm = false;
       } catch (error) {
-        console.error('Erro ao atualizar projeto:', error);
+        alert('Erro ao atualizar projeto');
       }
     },
     async deleteProject(id) {
       try {
-        await axios.delete(`http://127.0.0.1:5000/api/projeto/${id}`);
-        this.fetchProjects(); // Atualiza a lista de projetos após a exclusão
+        await axios.delete(`http://localhost:8000/project/${id}`);
+        this.fetchProjects(); 
       } catch (error) {
-        console.error('Erro ao excluir projeto:', error);
+        alert('Erro ao excluir projeto');
       }
     },
     cancelForm() {
@@ -118,16 +117,16 @@ export default {
     resetForm() {
       this.form = {
         id: null,
-        nome: '',
+        name: '',
         status: ''
       };
     },
     async fetchProjects() {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/projeto');
+        const response = await axios.get('http://localhost:8000/project');
         this.projects = response.data;
       } catch (error) {
-        console.error('Erro ao buscar projetos:', error);
+        alert('Erro ao buscar projetos');
       }
     }
   },
@@ -207,14 +206,19 @@ html, body {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+  text-align: center;
+}
+
+.cards-container button {
+  border-radius: 2px;
 }
 
 .project-card {
   background-color: #f3f2f1;
   border: 1px solid #e1dfdd;
   border-radius: 4px;
-  padding: 20px;
-  width: 300px;
+  padding: 8%;
+  width: 80%;
   cursor: pointer;
 }
 
