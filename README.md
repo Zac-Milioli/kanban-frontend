@@ -13,5 +13,7 @@ npm install
 ```
 npm run serve
 ```
-
 > O projeto estará disponível em http://localhost:8080
+
+### Versão antiga (frontend + backend + banco de dados)
+> https://github.com/Zac-Milioli/Sistema-Kanban
