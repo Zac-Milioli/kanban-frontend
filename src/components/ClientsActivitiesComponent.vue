@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <div class="header-bar">
-      <h1>Clientes e Atividades</h1>
+      <h1>Clientes e Atividades: {{ projectName }}</h1>
       <h3>Selecione um cliente para criar atividades</h3>
     </div>
     <div class="content">
@@ -20,7 +20,7 @@
       </div>
       <div class="column bordered">
         <div class="section-header">
-          <h2>{{ selectedClient ? `Atividades de ${selectedClient.name}` : 'Todas as atividades do projeto' }}</h2>
+          <h2>{{ selectedClient ? `Atividades de ${selectedClient.name}` : 'Atividades' }}</h2>
           <div>
             <button v-if="selectedClient" @click="showCreateActivityForm">Adicionar Atividade</button>
             <button v-if="selectedClient" @click="deselectClient">Voltar</button>
@@ -112,12 +112,14 @@ export default {
     async fetchData() {
       const projectId = this.$route.params.id;
       try {
-        const [clientsResponse, activitiesResponse] = await Promise.all([
+        const [clientsResponse, activitiesResponse, projectResponse] = await Promise.all([
           axios.get(`http://localhost:8000/client?project_id=${projectId}`),
-          axios.get(`http://localhost:8000/activity?project_id=${projectId}`)
+          axios.get(`http://localhost:8000/activity?project_id=${projectId}`),
+          axios.get(`http://localhost:8000/project?project_id=${projectId}`)
         ]);
         this.clients = clientsResponse.data;
         this.activities = activitiesResponse.data;
+        this.projectName = projectResponse.data.name;
       } catch (error) {
         console.log('Erro ao buscar dados');
       }
@@ -266,6 +268,7 @@ h3 {
 .status-section {
   display: flex;
   flex-direction: column;
+  margin: 5px;
 }
 
 .page-container {
