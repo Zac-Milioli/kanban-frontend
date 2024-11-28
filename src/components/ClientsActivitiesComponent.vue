@@ -28,15 +28,17 @@
         <div v-for="status in activityStatuses" :key="status" class="status-section">
           <h2>{{ status }}</h2>
           <div class="cards-container">
-            <div v-for="activity in filteredActivities" :key="activity.id" class="card">
+            <div v-for="activity in filteredActivitiesByStatus(status)" :key="activity.id" class="card">
               <h3>{{ activity.name }}</h3>
-              <p v-if="selectedClient===null">Cliente: {{ getClientName(activity.client_id) }}</p>
-              <button @click="editActivity(activity)">Editar</button>
-              <button @click="deleteActivity(activity.id)">Excluir</button>
+              <p v-if="selectedClient === null">Cliente: {{ getClientName(activity.client_id) }}</p>
+              <div class="card-buttons">
+                <button @click="editActivity(activity)">Editar</button>
+                <button @click="deleteActivity(activity.id)">Excluir</button>
+              </div>
             </div>
+          </div>
         </div>
       </div>
-    </div>
     </div>
 
     <!-- Formulário de Cliente -->
@@ -103,6 +105,9 @@ export default {
     }
   },
   methods: {
+    filteredActivitiesByStatus(status) {
+      return this.filteredActivities.filter(activity => activity.status === status);
+    },
     async fetchData() {
       const projectId = this.$route.params.id;
       try {
