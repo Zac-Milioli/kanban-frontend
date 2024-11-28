@@ -93,7 +93,7 @@ export default {
       showActivityForm: false,
       isEditingActivity: false,
       activityForm: { id: null, name: '', description: '', status: '', client_id: null },
-      activityStatuses: ['Em andamento', 'Concluído', 'Cancelado']
+      activityStatuses: ['Em andamento', 'Bloqueado', 'Concluído', 'Cancelado']
     };
   },
   computed: {

@@ -52,7 +52,7 @@ export default {
   data() {
     return {
       projects: [],
-      projectStatuses: ['Em andamento', 'Concluído', 'Cancelado'],
+      projectStatuses: ['Em planejamento', 'Em andamento', 'Concluído', 'Cancelado'],
       showForm: false,
       isEditing: false,
       form: {
