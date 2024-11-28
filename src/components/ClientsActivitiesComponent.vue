@@ -94,7 +94,7 @@ export default {
       showActivityForm: false,
       isEditingActivity: false,
       activityForm: { id: null, name: '', description: '', status: '', client_id: null },
-      activityStatuses: ['Em andamento', 'Concluído', 'Bloqueado', 'Cancelado']
+      activityStatuses: ['Em andamento', 'Concluído', 'Cancelado']
     };
   },
   computed: {
@@ -215,7 +215,7 @@ export default {
     async updateActivity() {
       try {
         await axios.put(`http://localhost:8000/activity/${this.activityForm.id}`, this.activityForm);
-        this.fetchClientActivities(this.selectedClient.id); // Atualiza as atividades após a atualização
+        this.fetchData(); // Atualiza os dados após a atualização
         this.showActivityForm = false;
       } catch (error) {
         console.log('Erro ao atualizar atividade');
@@ -224,7 +224,7 @@ export default {
     async deleteActivity(id) {
       try {
         await axios.delete(`http://localhost:8000/activity/${id}`);
-        this.fetchClientActivities(this.selectedClient.id); // Atualiza as atividades após a exclusão
+        this.fetchData(); // Atualiza os dados após a exclusão
       } catch (error) {
         console.log('Erro ao excluir atividade');
       }
