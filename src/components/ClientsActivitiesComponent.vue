@@ -2,6 +2,7 @@
   <div class="page-container">
     <div class="header-bar">
       <h1>Clientes e Atividades</h1>
+      <h3>Selecione um cliente para criar atividades</h3>
     </div>
     <div class="content">
       <div class="column bordered">
@@ -93,7 +94,7 @@ export default {
       showActivityForm: false,
       isEditingActivity: false,
       activityForm: { id: null, name: '', description: '', status: '', client_id: null },
-      activityStatuses: ['Em andamento', 'Bloqueado', 'Concluído', 'Cancelado']
+      activityStatuses: ['Em andamento', 'Concluído', 'Bloqueado', 'Cancelado']
     };
   },
   computed: {
@@ -118,7 +119,7 @@ export default {
         this.clients = clientsResponse.data;
         this.activities = activitiesResponse.data;
       } catch (error) {
-        alert('Erro ao buscar dados');
+        console.log('Erro ao buscar dados');
       }
     },
     async fetchClientActivities(clientId) {
@@ -126,7 +127,7 @@ export default {
         const response = await axios.get(`http://localhost:8000/activity?client_id=${clientId}`);
         this.activities = response.data;
       } catch (error) {
-        alert('Erro ao buscar atividades do cliente');
+        console.log('Erro ao buscar atividades do cliente');
       }
     },
     getClientName(clientId) {
@@ -153,7 +154,7 @@ export default {
         this.fetchData(); // Atualiza os dados após a criação
         this.showClientForm = false;
       } catch (error) {
-        alert('Erro ao criar cliente');
+        console.log('Erro ao criar cliente');
       }
     },
     editClient(client) {
@@ -167,7 +168,7 @@ export default {
         this.fetchData(); // Atualiza os dados após a atualização
         this.showClientForm = false;
       } catch (error) {
-        alert('Erro ao atualizar cliente');
+        console.log('Erro ao atualizar cliente');
       }
     },
     async deleteClient(id) {
@@ -175,7 +176,7 @@ export default {
         await axios.delete(`http://localhost:8000/client/${id}`);
         this.fetchData(); // Atualiza os dados após a exclusão
       } catch (error) {
-        alert('Erro ao excluir cliente');
+        console.log('Erro ao excluir cliente');
       }
     },
     submitClientForm() {
@@ -203,7 +204,7 @@ export default {
         this.fetchClientActivities(this.selectedClient.id); // Atualiza as atividades após a criação
         this.showActivityForm = false;
       } catch (error) {
-        alert('Erro ao criar atividade');
+        console.log('Erro ao criar atividade');
       }
     },
     editActivity(activity) {
@@ -217,7 +218,7 @@ export default {
         this.fetchClientActivities(this.selectedClient.id); // Atualiza as atividades após a atualização
         this.showActivityForm = false;
       } catch (error) {
-        alert('Erro ao atualizar atividade');
+        console.log('Erro ao atualizar atividade');
       }
     },
     async deleteActivity(id) {
@@ -225,7 +226,7 @@ export default {
         await axios.delete(`http://localhost:8000/activity/${id}`);
         this.fetchClientActivities(this.selectedClient.id); // Atualiza as atividades após a exclusão
       } catch (error) {
-        alert('Erro ao excluir atividade');
+        console.log('Erro ao excluir atividade');
       }
     },
     submitActivityForm() {
@@ -254,6 +255,12 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+}
+
+h3 {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0;
 }
 
 .status-section {
@@ -294,14 +301,14 @@ html, body {
 
 .bordered {
   border: 1px solid #e1dfdd;
-  border-radius: 4px;
   padding: 10px;
-  height: calc(100vh - 100px); /* Ajusta a altura para preencher a página */
+  height: 100%
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 20px;
 }
 
 .section-header h2 {
@@ -332,6 +339,9 @@ html, body {
 
 .card h3 {
   margin-top: 0;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
   text-align: center;
   max-width: 80%;
   word-wrap: break-word;

@@ -83,7 +83,7 @@ export default {
         this.fetchProjects();
         this.showForm = false;
       } catch (error) {
-        alert('Erro ao criar projeto');
+        console.log('Erro ao criar projeto');
       }
     },
     editProject(project) {
@@ -100,7 +100,7 @@ export default {
         this.fetchProjects(); 
         this.showForm = false;
       } catch (error) {
-        alert('Erro ao atualizar projeto');
+        console.log('Erro ao atualizar projeto');
       }
     },
     async deleteProject(id) {
@@ -108,7 +108,7 @@ export default {
         await axios.delete(`http://localhost:8000/project/${id}`);
         this.fetchProjects(); 
       } catch (error) {
-        alert('Erro ao excluir projeto');
+        console.log('Erro ao excluir projeto');
       }
     },
     cancelForm() {
@@ -126,7 +126,7 @@ export default {
         const response = await axios.get('http://localhost:8000/project');
         this.projects = response.data;
       } catch (error) {
-        alert('Erro ao buscar projetos');
+        console.log('Erro ao buscar projetos');
       }
     }
   },
