@@ -1,8 +1,9 @@
 # Kanban Frontend
 
-## NOTA
-Para o adequado funcionamento, o backend também deve estar sendo executado.
-> https://www.github.com/zac-milioli/kanban-api-backend
+# Download e Instalação
+As versões disponíveis para baixar encontram-se em [releases](https://github.com/Zac-Milioli/kanban-frontend/releases).
+
+É necessário estar executando também o backend para utilizar o frontend. [Clique aqui](https://www.github.com/Zac-Milioli/kanban-api-backend/releases) para ir ao repositório do backend.
 
 ## Setup / Instalação
 ```
